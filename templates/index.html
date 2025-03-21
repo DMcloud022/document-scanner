@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Professional Document Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            padding: 20px;
+        }
+        .scan-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .preview-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .preview {
+            max-width: 100%;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .drop-zone:hover {
+            border-color: #007bff;
+            background: #f1f7ff;
+        }
+        .drop-zone.dragover {
+            border-color: #28a745;
+            background: #e8f5e9;
+        }
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .scan-options {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        .error-message {
+            color: #dc3545;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #fff3f3;
+        }
+        .success-message {
+            color: #28a745;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0fff0;
+        }
+        .doc-info {
+            margin: 15px 0;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        .action-buttons {
+            margin-top: 15px;
+        }
+        .progress {
+            margin-top: 10px;
+            display: none;
+        }
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            display: none;
+        }
+        
+        #cameraFeed {
+            width: 100%;
+            border-radius: 10px;
+        }
+        
+        .camera-controls {
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .capture-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #007bff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .capture-btn:hover {
+            background: #007bff;
+        }
+        
+        .capture-btn:hover::after {
+            background: #fff;
+        }
+        
+        .capture-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #007bff;
+            transition: all 0.3s ease;
+        }
+        
+        .source-select {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .source-select .btn {
+            margin: 0 5px;
+        }
+        
+        .camera-switch {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-file-scan"></i> Document Scanner
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/"><i class="fas fa-scanner"></i> Scan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/gallery"><i class="fas fa-images"></i> Gallery</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/guide"><i class="fas fa-info-circle"></i> Guide</a>
+                    </li>
+                </ul>
+                <div class="navbar-text">
+                    <small class="text-muted">Professional Document Scanning</small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="scan-container">
+            <h1 class="text-center mb-4">Professional Document Scanner</h1>
+            
+            <div class="source-select">
+                <button class="btn btn-primary" onclick="showUploadOption()">
+                    <i class="fas fa-file-upload"></i> Upload File
+                </button>
+                <button class="btn btn-success" onclick="showCameraOption()">
+                    <i class="fas fa-camera"></i> Use Camera
+                </button>
+            </div>
+
+            <div class="drop-zone hidden" id="dropZone">
+                <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
+                <h4>Drag & Drop your document here</h4>
+                <p>or</p>
+                <button class="btn btn-primary" onclick="document.getElementById('imageInput').click()">
+                    <i class="fas fa-file-upload"></i> Choose File
+                </button>
+                <input type="file" id="imageInput" accept="image/*" class="hidden" capture="environment">
+            </div>
+
+            <div class="camera-container" id="cameraContainer">
+                <video id="cameraFeed" autoplay playsinline></video>
+                <button class="camera-switch btn btn-light" onclick="switchCamera()">
+                    <i class="fas fa-sync"></i>
+                </button>
+                <button class="capture-btn" onclick="captureImage()"></button>
+                <canvas id="captureCanvas" style="display: none;"></canvas>
+            </div>
+
+            <!-- Scan Options -->
+            <div class="scan-options">
+                <h5 class="mb-3"><i class="fas fa-sliders-h"></i> Scan Options</h5>
+                <div class="row">
+                    <!-- Image Enhancement -->
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-3">Enhancement</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="enhanceImage">
+                            <label class="form-check-label" for="enhanceImage">
+                                Auto Enhance
+                            </label>
+                            <small class="d-block text-muted">Automatically improve image quality</small>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="removeShadows">
+                            <label class="form-check-label" for="removeShadows">
+                                Remove Shadows
+                            </label>
+                            <small class="d-block text-muted">Remove dark areas and shadows</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Document Processing -->
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-3">Document</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="deskew" checked>
+                            <label class="form-check-label" for="deskew">
+                                Auto-straighten
+                            </label>
+                            <small class="d-block text-muted">Correct document alignment</small>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="colorMode">Color Mode</label>
+                            <select class="form-select" id="colorMode">
+                                <option value="auto">Auto-enhance</option>
+                                <option value="original">Original</option>
+                                <option value="bw">Black & White</option>
+                                <option value="grayscale">Grayscale</option>
+                            </select>
+                            <small class="text-muted">Choose color processing mode</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Text Enhancement -->
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-3">Text</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="sharpen">
+                            <label class="form-check-label" for="sharpen">
+                                Sharpen Text
+                            </label>
+                            <small class="d-block text-muted">Improve text clarity</small>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="denoise">
+                            <label class="form-check-label" for="denoise">
+                                Reduce Noise
+                            </label>
+                            <small class="d-block text-muted">Remove image noise and artifacts</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+            </div>
+
+            <div id="errorMessage" class="error-message hidden"></div>
+            <div id="successMessage" class="success-message hidden"></div>
+
+            <div id="docInfo" class="doc-info hidden">
+                <h5><i class="fas fa-info-circle"></i> Document Information</h5>
+                <div id="docInfoContent"></div>
+            </div>
+        </div>
+
+        <div class="preview-container hidden" id="previewContainer">
+            <h4><i class="fas fa-file-alt"></i> Scanned Document</h4>
+            <img id="preview" class="preview" alt="Scanned document">
+            
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="downloadImage()">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button class="btn btn-primary" onclick="rescan()">
+                    <i class="fas fa-redo"></i> Scan Another
+                </button>
+                <button class="btn btn-secondary" onclick="rotateImage()">
+                    <i class="fas fa-redo"></i> Rotate
+                </button>
+                <div class="btn-group ms-2">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="shareCurrentImage('facebook')">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="shareCurrentImage('messenger')">
+                            <i class="fab fa-facebook-messenger"></i> Messenger
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="shareCurrentImage('email')">
+                            <i class="fas fa-envelope"></i> Email
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <h5 class="mt-2">Processing document...</h5>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentImageBlob = null;
+        let rotation = 0;
+        let stream = null;
+        let currentFacingMode = 'environment'; // Start with back camera
+        let videoElement = null;
+        let canvasElement = null;
+
+        // Drag and drop handling
+        const dropZone = document.getElementById('dropZone');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    scanDocument(file);
+                } else {
+                    showError('Please select an image file');
+                }
+            }
+        }
+
+        async function scanDocument(file) {
+            try {
+                showLoading(true);
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('enhance', document.getElementById('enhanceImage').checked);
+                
+                // Add scan options
+                const options = {
+                    color_mode: document.getElementById('colorMode').value,
+                    remove_shadows: document.getElementById('removeShadows').checked,
+                    deskew: document.getElementById('deskew').checked,
+                    sharpen: document.getElementById('sharpen').checked,
+                    denoise: document.getElementById('denoise').checked
+                };
+                
+                formData.append('options', JSON.stringify(options));
+
+                const response = await fetch('/scan', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',  // CSRF protection
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        currentImageBlob = await fetch(result.image_url).then(r => r.blob());
+                        document.getElementById('preview').src = URL.createObjectURL(currentImageBlob);
+                        document.getElementById('previewContainer').classList.remove('hidden');
+                        
+                        // Show document info
+                        if (result.doc_info) {
+                            showDocInfo(result.doc_info);
+                        }
+                        
+                        showSuccess('Document scanned successfully!');
+                    } else {
+                        showError(result.error || 'Failed to scan document');
+                    }
+                } else {
+                    const error = await response.json();
+                    showError(error.error || 'An error occurred');
+                }
+            } catch (error) {
+                showError('An error occurred while processing the document');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showDocInfo(info) {
+            const docInfo = document.getElementById('docInfo');
+            const content = document.getElementById('docInfoContent');
+            content.innerHTML = `
+                <p><strong>Confidence:</strong> ${info.confidence.toFixed(1)}%</p>
+                <p><strong>Rotation:</strong> ${info.angle.toFixed(1)}°</p>
+            `;
+            docInfo.classList.remove('hidden');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+            document.querySelector('.progress').style.display = show ? 'block' : 'none';
+            if (show) {
+                simulateProgress();
+            }
+        }
+
+        function simulateProgress() {
+            const progressBar = document.querySelector('.progress-bar');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                if (progress > 90) clearInterval(interval);
+                progressBar.style.width = `${progress}%`;
+            }, 100);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.classList.remove('hidden');
+            setTimeout(() => successDiv.classList.add('hidden'), 5000);
+        }
+
+        function downloadImage() {
+            if (currentImageBlob) {
+                const url = URL.createObjectURL(currentImageBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'scanned_document.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function rescan() {
+            document.getElementById('previewContainer').classList.add('hidden');
+            document.getElementById('docInfo').classList.add('hidden');
+            document.getElementById('imageInput').value = '';
+            currentImageBlob = null;
+            rotation = 0;
+        }
+
+        function rotateImage() {
+            rotation = (rotation + 90) % 360;
+            const preview = document.getElementById('preview');
+            preview.style.transform = `rotate(${rotation}deg)`;
+        }
+
+        function shareCurrentImage(platform) {
+            if (!currentImageBlob) return;
+            
+            // Get the current image URL from the preview
+            const imageUrl = document.getElementById('preview').src;
+            
+            switch(platform) {
+                case 'facebook':
+                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(imageUrl)}`, 
+                        'facebook-share', 'width=580,height=296');
+                    break;
+                    
+                case 'messenger':
+                    window.open(`fb-messenger://share/?link=${encodeURIComponent(imageUrl)}`, '_blank');
+                    break;
+                    
+                case 'email':
+                    window.location.href = `mailto:?subject=Scanned Document&body=Check out this scanned document: ${encodeURIComponent(imageUrl)}`;
+                    break;
+            }
+        }
+
+        async function showCameraOption() {
+            document.getElementById('dropZone').classList.add('hidden');
+            document.getElementById('cameraContainer').style.display = 'block';
+            await initCamera();
+        }
+
+        function showUploadOption() {
+            document.getElementById('dropZone').classList.remove('hidden');
+            document.getElementById('cameraContainer').style.display = 'none';
+            stopCamera();
+        }
+
+        async function initCamera() {
+            try {
+                videoElement = document.getElementById('cameraFeed');
+                canvasElement = document.getElementById('captureCanvas');
+
+                if (stream) {
+                    stopCamera();
+                }
+
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
+                
+                // Wait for video to be ready
+                await new Promise(resolve => {
+                    videoElement.onloadedmetadata = () => {
+                        resolve();
+                    };
+                });
+                
+                // Set canvas size to match video
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                
+            } catch (error) {
+                showError('Unable to access camera: ' + error.message);
+                showUploadOption();
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            if (videoElement) {
+                videoElement.srcObject = null;
+            }
+        }
+
+        async function switchCamera() {
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            await initCamera();
+        }
+
+        async function captureImage() {
+            if (!videoElement || !canvasElement) return;
+            
+            try {
+                // Draw current video frame to canvas
+                const context = canvasElement.getContext('2d');
+                context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+                
+                // Convert canvas to blob
+                const blob = await new Promise(resolve => {
+                    canvasElement.toBlob(resolve, 'image/jpeg', 0.9);
+                });
+                
+                // Create a File object from the blob
+                const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
+                
+                // Process the captured image
+                await scanDocument(file);
+                
+                // Stop camera after successful capture
+                stopCamera();
+                showUploadOption();
+                
+            } catch (error) {
+                showError('Error capturing image: ' + error.message);
+            }
+        }
+
+        // Update your existing window.onload or add this if it doesn't exist
+        window.onload = function() {
+            // Check if browser supports camera
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                document.querySelector('.source-select button:last-child').style.display = 'none';
+            }
+        };
+
+        // Add to your existing beforeunload event or add this if it doesn't exist
+        window.onbeforeunload = function() {
+            stopCamera();
+        };
+    </script>
+</body>
+</html> 
