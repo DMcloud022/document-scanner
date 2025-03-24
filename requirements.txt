@@ -4,4 +4,6 @@ numpy>=1.24.0
 imutils>=0.5.4
 scikit-image>=0.22.0
 pillow>=10.0.0
-python-magic-bin>=0.4.14 
+python-magic-bin>=0.4.14
+werkzeug>=2.0.0
+scipy>=1.11.0 

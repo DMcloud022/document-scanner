@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- ... (copy relevant styles from index.html) ... -->
+</head>
+<body>
+    <!-- ... (copy navbar from index.html) ... -->
+
+    <div class="container">
+        <div class="edit-container">
+            <h2 class="text-center mb-4">Edit Document</h2>
+            
+            <!-- Document Settings (copy from index.html) -->
+            <div class="scan-options">
+                <!-- ... (copy scan options from index.html) ... -->
+            </div>
+
+            <!-- Preview -->
+            <div class="preview-container" id="previewContainer">
+                <img id="preview" class="preview" src="{{ original_url }}" alt="Document preview">
+                
+                <div class="action-buttons mt-3">
+                    <button class="btn btn-success" onclick="saveChanges()">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/gallery'">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <!-- ... (copy loading spinner from index.html) ... -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const currentTempId = '{{ temp_id }}';
+        const originalFilename = '{{ filename }}';
+        let originalImage = '{{ original_url }}';
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.classList.remove('hidden');
+            setTimeout(() => successDiv.classList.add('hidden'), 5000);
+        }
+
+        async function saveChanges() {
+            try {
+                showLoading(true);
+                const response = await fetch('/save_edited', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        temp_id: currentTempId,
+                        original_filename: originalFilename
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('Changes saved successfully!');
+                    setTimeout(() => {
+                        window.location.href = '/gallery';
+                    }, 1500);
+                } else {
+                    showError(result.error || 'Failed to save changes');
+                }
+            } catch (error) {
+                console.error(error);
+                showError('Failed to save changes');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Handle page unload to clean up temp files
+        window.addEventListener('beforeunload', async () => {
+            if (currentTempId) {
+                try {
+                    await fetch('/cleanup_temp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ temp_id: currentTempId })
+                    });
+                } catch (e) {
+                    console.error('Failed to cleanup temp files:', e);
+                }
+            }
+        });
+
+        // Enable real-time preview updates
+        enableAdjustments();
+    </script>
+</body>
+</html> 

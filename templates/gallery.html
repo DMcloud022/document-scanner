@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Scanned Documents Gallery</title>
+    <title>Document Gallery - Professional Document Scanner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -11,34 +11,113 @@
             background-color: #f8f9fa;
         }
         .gallery-container {
+            padding: 30px 20px;
+        }
+        .gallery-header {
+            background: white;
             padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .gallery-stats {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 10px;
         }
         .gallery-item {
-            margin-bottom: 20px;
-            background: white;
-            border-radius: 10px;
+            position: relative;
+            margin-bottom: 25px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: white;
+        }
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         .gallery-item img {
             width: 100%;
-            height: 300px;
-            object-fit: contain;
-            background: #f8f9fa;
+            height: 250px;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
         }
         .gallery-item .info {
             padding: 15px;
+            background: white;
         }
-        .share-buttons {
-            padding: 10px;
+        .gallery-item .info h5 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            word-break: break-word;
+        }
+        .gallery-item .info small {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+        }
+        .gallery-item .actions {
+            padding: 10px 15px;
+            background: #f8f9fa;
             border-top: 1px solid #eee;
         }
-        .nav-link {
-            color: #333;
-            text-decoration: none;
+        .btn-group {
+            display: flex;
+            gap: 5px;
         }
-        .nav-link:hover {
-            color: #007bff;
+        .btn-group .btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .empty-gallery {
+            text-align: center;
+            padding: 50px 20px;
+            background: white;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        .empty-gallery i {
+            font-size: 48px;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+        .dropdown-menu {
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .dropdown-item {
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+        }
+        .filter-bar {
+            margin-bottom: 20px;
+        }
+        .search-box {
+            position: relative;
+            max-width: 300px;
+        }
+        .search-box input {
+            padding-left: 40px;
+            border-radius: 20px;
+        }
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
         }
     </style>
 </head>
@@ -71,58 +150,138 @@
     </nav>
 
     <div class="container gallery-container">
-        <div class="gallery-header d-flex justify-content-between align-items-center mb-4">
-            <h2>Scanned Documents</h2>
-            <button class="btn btn-danger" onclick="deleteAllDocuments()">
-                <i class="fas fa-trash"></i> Delete All
-            </button>
+        <div class="gallery-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0">Document Gallery</h2>
+                    <div class="gallery-stats">
+                        {{ files|length }} document{% if files|length != 1 %}s{% endif %} stored
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Scan
+                    </a>
+                    {% if files %}
+                    <button class="btn btn-danger" onclick="deleteAllDocuments()">
+                        <i class="fas fa-trash"></i> Delete All
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <div class="row">
+
+        {% if files %}
+        <div class="filter-bar d-flex justify-content-between align-items-center">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control" placeholder="Search documents..." id="searchInput">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary" onclick="sortDocuments('name')">
+                    <i class="fas fa-sort-alpha-down"></i> Name
+                </button>
+                <button class="btn btn-outline-secondary" onclick="sortDocuments('date')">
+                    <i class="fas fa-calendar"></i> Date
+                </button>
+            </div>
+        </div>
+
+        <div class="row" id="galleryGrid">
             {% for file in files %}
-            <div class="col-md-4">
+            <div class="col-md-4 gallery-item-wrapper" data-name="{{ file.display_name.lower() }}" data-date="{{ file.date }}">
                 <div class="gallery-item">
-                    <img src="{{ file.url }}" alt="Scanned document">
+                    <img src="{{ file.url }}" alt="{{ file.display_name }}" loading="lazy">
                     <div class="info">
+                        <h5>{{ file.display_name }}</h5>
                         <small class="text-muted">{{ file.date }}</small>
                     </div>
-                    <div class="share-buttons">
-                        <div class="dropdown d-inline-block">
-                            <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-share-alt"></i> Share
+                    <div class="actions">
+                        <div class="btn-group w-100">
+                            <button class="btn btn-sm btn-primary" onclick="viewDocument('{{ file.url }}')">
+                                <i class="fas fa-eye"></i> View
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'facebook')">
-                                    <i class="fab fa-facebook"></i> Facebook
-                                </a></li>
-                                <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'twitter')">
-                                    <i class="fab fa-twitter"></i> Twitter
-                                </a></li>
-                                <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'whatsapp')">
-                                    <i class="fab fa-whatsapp"></i> WhatsApp
-                                </a></li>
-                                <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'messenger')">
-                                    <i class="fab fa-facebook-messenger"></i> Messenger
-                                </a></li>
-                                <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'email')">
-                                    <i class="fas fa-envelope"></i> Email
-                                </a></li>
-                            </ul>
+                            <button class="btn btn-sm btn-info" onclick="editDocument('{{ file.name }}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-sm btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-share-alt"></i> Share
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'facebook')">
+                                        <i class="fab fa-facebook"></i> Facebook
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'twitter')">
+                                        <i class="fab fa-twitter"></i> Twitter
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'whatsapp')">
+                                        <i class="fab fa-whatsapp"></i> WhatsApp
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="shareImage('{{ file.url }}', 'email')">
+                                        <i class="fas fa-envelope"></i> Email
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ file.url }}" download>
+                                        <i class="fas fa-download"></i> Download
+                                    </a></li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-sm btn-danger" onclick="deleteDocument('{{ file.name }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                        <button class="btn btn-sm btn-danger" onclick="deleteDocument('{{ file.name }}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                        <a href="{{ file.url }}" download class="btn btn-sm btn-success">
-                            <i class="fas fa-download"></i>
-                        </a>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="empty-gallery">
+            <i class="fas fa-images"></i>
+            <h3>No Documents Yet</h3>
+            <p class="text-muted">Start by scanning your first document</p>
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Scan
+            </a>
+        </div>
+        {% endif %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.gallery-item-wrapper');
+            
+            items.forEach(item => {
+                const name = item.dataset.name;
+                if (name.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Sorting functionality
+        function sortDocuments(criteria) {
+            const grid = document.getElementById('galleryGrid');
+            const items = Array.from(grid.children);
+            
+            items.sort((a, b) => {
+                const aValue = a.dataset[criteria];
+                const bValue = b.dataset[criteria];
+                return criteria === 'date' ? 
+                    new Date(bValue) - new Date(aValue) : // Sort dates newest first
+                    aValue.localeCompare(bValue); // Sort names alphabetically
+            });
+            
+            items.forEach(item => grid.appendChild(item));
+        }
+
+        // Existing functions
         async function deleteDocument(filename) {
             if (!confirm('Are you sure you want to delete this document?')) return;
             
@@ -173,25 +332,26 @@
                     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`, 
                         'facebook-share', 'width=580,height=296');
                     break;
-                    
                 case 'twitter':
                     window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}&text=Check out this scanned document`, 
                         'twitter-share', 'width=580,height=296');
                     break;
-                    
                 case 'whatsapp':
                     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullUrl)}`, 
                         'whatsapp-share');
                     break;
-                    
-                case 'messenger':
-                    window.open(`fb-messenger://share/?link=${encodeURIComponent(fullUrl)}`, '_blank');
-                    break;
-                    
                 case 'email':
                     window.location.href = `mailto:?subject=Scanned Document&body=Check out this scanned document: ${encodeURIComponent(fullUrl)}`;
                     break;
             }
+        }
+
+        function viewDocument(url) {
+            window.open(url, '_blank');
+        }
+
+        function editDocument(filename) {
+            window.location.href = `/edit/${filename}`;
         }
     </script>
 </body>

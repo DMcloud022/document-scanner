@@ -12,17 +12,77 @@
         }
         .guide-container {
             background: white;
-            border-radius: 10px;
+            border-radius: 15px;
             padding: 30px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             margin: 20px auto;
         }
         .guide-section {
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #fff;
+            transition: transform 0.2s;
+        }
+        .guide-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         .guide-section h3 {
-            color: #007bff;
+            color: #0d6efd;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        .tip-card {
+            background: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
             margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+        .feature-icon {
+            font-size: 24px;
+            color: #0d6efd;
+            margin-right: 15px;
+            min-width: 30px;
+        }
+        .feature-content {
+            flex: 1;
+        }
+        .feature-content h5 {
+            margin-bottom: 5px;
+            color: #212529;
+        }
+        .feature-content p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+        .troubleshooting-item {
+            cursor: pointer;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .troubleshooting-item:hover {
+            background: #f8f9fa;
+        }
+        .best-practices-list {
+            list-style: none;
+            padding: 0;
+        }
+        .best-practices-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .best-practices-list li:last-child {
+            border-bottom: none;
         }
     </style>
 </head>
@@ -56,41 +116,125 @@
 
     <div class="container">
         <div class="guide-container">
-            <h2 class="text-center mb-4">Scanner Guide</h2>
+            <h2 class="text-center mb-4">Complete Scanner Guide</h2>
             
             <div class="guide-section">
-                <h3><i class="fas fa-camera"></i> Capture Tips</h3>
-                <ul>
-                    <li>Use camera or upload file</li>
-                    <li>Ensure good lighting</li>
-                    <li>Keep document within frame</li>
-                    <li>Avoid shadows when possible</li>
-                    <li>Hold the camera steady</li>
-                    <li>Ensure all corners are visible</li>
+                <h3><i class="fas fa-camera"></i> Getting Started</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="tip-card">
+                            <h5>Quick Start Steps</h5>
+                            <ol>
+                                <li>Position your document on a flat surface</li>
+                                <li>Open camera or choose file upload</li>
+                                <li>Align document within frame</li>
+                                <li>Capture or select image</li>
+                                <li>Apply enhancements as needed</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="tip-card">
+                            <h5>Supported Documents</h5>
+                            <ul>
+                                <li>Text documents & letters</li>
+                                <li>ID cards & certificates</li>
+                                <li>Receipts & invoices</li>
+                                <li>Forms & contracts</li>
+                                <li>Handwritten notes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <h3><i class="fas fa-magic"></i> Scanner Features</h3>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h5>Color Modes</h5>
+                        <p><strong>Original:</strong> Keeps original colors<br>
+                        <strong>Enhanced:</strong> Improves color balance and contrast<br>
+                        <strong>B&W:</strong> Best for text documents<br>
+                        <strong>Grayscale:</strong> Good for photos and detailed documents</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h5>Enhancement Options</h5>
+                        <p><strong>Auto-straighten:</strong> Corrects document alignment<br>
+                        <strong>Clean Background:</strong> Removes shadows and improves contrast<br>
+                        <strong>Sharpen Text:</strong> Enhances text clarity and readability</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <h3><i class="fas fa-check-circle"></i> Best Practices</h3>
+                <ul class="best-practices-list">
+                    <li>
+                        <i class="fas fa-lightbulb text-warning"></i>
+                        <strong>Lighting:</strong> Use even, bright lighting. Avoid harsh shadows.
+                    </li>
+                    <li>
+                        <i class="fas fa-expand text-info"></i>
+                        <strong>Positioning:</strong> Ensure all corners are visible and document fills the frame.
+                    </li>
+                    <li>
+                        <i class="fas fa-hand-paper text-success"></i>
+                        <strong>Stability:</strong> Keep device steady while capturing.
+                    </li>
+                    <li>
+                        <i class="fas fa-adjust text-primary"></i>
+                        <strong>Contrast:</strong> Ensure good contrast between document and background.
+                    </li>
                 </ul>
             </div>
 
             <div class="guide-section">
-                <h3><i class="fas fa-magic"></i> Best Results</h3>
-                <ul>
-                    <li>Use auto-enhance for most documents</li>
-                    <li>Try B&W mode for text documents</li>
-                    <li>Enable shadow removal if needed</li>
-                    <li>Use sharpen for better text clarity</li>
-                    <li>Auto-straighten helps with alignment</li>
-                </ul>
-            </div>
-
-            <div class="guide-section">
-                <h3><i class="fas fa-sliders-h"></i> Scanner Options</h3>
-                <ul>
-                    <li><strong>Auto Enhance:</strong> Automatically improve image quality</li>
-                    <li><strong>Remove Shadows:</strong> Remove dark areas and shadows</li>
-                    <li><strong>Auto-straighten:</strong> Correct document alignment</li>
-                    <li><strong>Color Mode:</strong> Choose between original, enhanced, B&W, or grayscale</li>
-                    <li><strong>Sharpen Text:</strong> Improve text clarity</li>
-                    <li><strong>Reduce Noise:</strong> Remove image noise and artifacts</li>
-                </ul>
+                <h3><i class="fas fa-exclamation-circle"></i> Troubleshooting</h3>
+                <div class="accordion" id="troubleshootingAccordion">
+                    <div class="accordion-item troubleshooting-item">
+                        <h4 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#problem1">
+                                Blurry Results
+                            </button>
+                        </h4>
+                        <div id="problem1" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Hold device steady while capturing</li>
+                                    <li>Ensure adequate lighting</li>
+                                    <li>Clean camera lens</li>
+                                    <li>Try using the sharpen feature</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item troubleshooting-item">
+                        <h4 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#problem2">
+                                Poor Text Quality
+                            </button>
+                        </h4>
+                        <div id="problem2" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Try B&W mode for text documents</li>
+                                    <li>Enable text sharpening</li>
+                                    <li>Adjust contrast settings</li>
+                                    <li>Ensure proper lighting</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
